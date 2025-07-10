@@ -5,9 +5,9 @@
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
-int brightness = 32;
-int n = 2;    // number of pixels traveling together
-int dist = 10; // distance between chasing pixels
+int brightness = 100;
+int n = 5;    // number of pixels traveling together
+int dist = 30; // distance between chasing groups of pixels
 int del = 50; // delay
 
 void setup() {
@@ -34,9 +34,11 @@ void loop() {
     pixels.setPixelColor(i, pixels.Color(colors[c][0], colors[c][1], colors[c][2]));
   }
 
-  if (k < n) {
+  if (k == 0) {
     // Introduce a new color for the first pixel
     indices[0] = random(1,NUMCOLORS-1);
+  } else if (k < n) {
+    indices[0] = indices[1]; // all pixels in a traveling group have the same color
   } else {
     indices[0] = 0; // black
   }
