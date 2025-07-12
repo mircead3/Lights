@@ -1,50 +1,49 @@
 #include <Adafruit_NeoPixel.h>
-#define PIN 9 // Digital pin connected to the data input of the strip
-#define NUMPIXELS 380 // Number of LEDs in the strip
-#define NUMCOLORS 8   // number of predefined colors
+#define PIN 3 // Digital pin connected to the data input of the strip
+#define NUMPIXELS 376 // Number of LEDs in the strip
+#define NUMCOLORS 7   // number of predefined colors
+#define TAILSIZE 5    // of the group leader (black after that)
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
-int brightness = 100;
-int n = 5;    // number of pixels traveling together
-int dist = 30; // distance between chasing groups of pixels
-int del = 50; // delay
+int brightness = 232;
+int groupSize = 94;   // size of a group of pixels traveling together, >= TAILSIZE
+int del = 0; // delay
+
+int colors[NUMCOLORS][3] = { // predefined colors
+  {255,0,0},  // red
+  {0,255,0},  // green
+  {0,0,255},  // blue
+  {255,255,0},
+  {0,255,255},
+  {255,0,255},
+  {255,255,255} // white
+};
+
+int fade[TAILSIZE] {1,2,4,8,16};  // fadding factors
+
+int period = NUMCOLORS*groupSize;
+int step = 0;  // repeats after period
 
 void setup() {
   pixels.begin(); // Initialize NeoPixel library
 }
 
-int k = 0;
-
-uint8_t colors[NUMCOLORS][3] = { // predefined colors; first one is black
-  {0,0,0},
-  {255,0,0},
-  {0,255,0},
-  {0,0,255},
-  {255,255,0},
-  {0,255,255},
-  {255,0,255},
-  {255,255,255}
-};
-uint8_t indices[NUMPIXELS];
-
 void loop() {
-  for (int i = NUMPIXELS-1; i > 0; i--) { // move one pixel forward
-    int c = indices[i] = indices[i-1];
-    pixels.setPixelColor(i, pixels.Color(colors[c][0], colors[c][1], colors[c][2]));
+  for (int i = 0; i < NUMPIXELS; i++) {
+    int j = i + period - step;
+    int index = j % groupSize; // in the group
+    if (index < groupSize - TAILSIZE) { // in the black region
+      pixels.setPixelColor(i, 0);
+    } else {  // in the tail
+      int c = (j / groupSize) % NUMCOLORS; // group color
+      int f = fade[groupSize - 1 - index];
+      pixels.setPixelColor(i, pixels.Color(colors[c][0]/f, colors[c][1]/f, colors[c][2]/f));
+    }
   }
 
-  if (k == 0) {
-    // Introduce a new color for the first pixel
-    indices[0] = random(1,NUMCOLORS-1);
-  } else if (k < n) {
-    indices[0] = indices[1]; // all pixels in a traveling group have the same color
-  } else {
-    indices[0] = 0; // black
-  }
-  pixels.setPixelColor(0, pixels.Color(colors[0][0], colors[0][1], colors[0][2]));
   pixels.setBrightness(brightness);
   pixels.show();
   delay(del);
-  k = (k+1) % dist;
+  step = (step+1) % period;
 }
