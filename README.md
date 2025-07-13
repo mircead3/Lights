@@ -1,3 +1,3 @@
 Lights
 -------
-A chasing lights algorithm for a LED strip. 
+Arduino chasing lights algorithm for a LED strip. 
